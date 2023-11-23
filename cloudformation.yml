@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: |
+  This template creates a single EC2 instance. running a flask app.
+Parameters:
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of the existing EC2 Key Pair
+
+  SecurityGroupName:
+    Type: AWS::EC2::SecurityGroup::GroupName
+    Description: Name of the existing Security Group
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-05c13eab67c5d8861
+      InstanceType: t2.micro
+      KeyName: !Ref KeyPairName
+      SecurityGroups: 
+        - !Ref SecurityGroupName
+      Tags:
+        - Key: Name
+          Value: rafe-lesson-cloudformation
+      UserData: 
+        Fn::Base64: |
+          #!/bin/bash
+          yum update -y
+          yum install git -y
+          yum install python3-pip -y
+          git clone https://github.com/rezasabouri/flask-05-Handling-SQL-with-Flask-Web-Application.git app
+          cd app
+          pip install -r requirements.txt
+          python3 app-with-sqlite.py
+
+Outputs:
+  WebsiteURL:
+    Description: Roman Numerals
+    Value: !Sub
+      - http://${PublicAddress}
+      - PublicAddress: !GetAtt EC2Instance.PublicIp
